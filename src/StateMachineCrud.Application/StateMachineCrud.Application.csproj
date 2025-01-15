@@ -6,4 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="12.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\StateMachineCrud.Domain\StateMachineCrud.Domain.csproj" />
+    <ProjectReference Include="..\StateMachineCrud.Infrastructure\StateMachineCrud.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
