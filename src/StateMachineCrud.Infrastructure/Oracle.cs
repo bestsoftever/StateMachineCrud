@@ -1,4 +1,5 @@
-﻿namespace StateMachineCrud.Infrastructure;
+﻿
+namespace StateMachineCrud.Infrastructure;
 
 public class Oracle
 {
@@ -14,5 +15,11 @@ public class Oracle
     {
         await Task.Yield();
         _mysql.Add(id, record);
+    }
+
+    public async Task<IEnumerable<(string Type, string Data)>> GetAll()
+    {
+        await Task.Yield();
+        return _mysql.Values;
     }
 }

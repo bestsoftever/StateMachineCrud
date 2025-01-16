@@ -5,10 +5,17 @@ namespace StateMachineCrud.Infrastructure;
 
 public class ConclusionsRepository(Oracle oracle) : IConclusionsRepository
 {
-    public async Task Upsert(HolidayConclusionBase conclusion)
+    record HolidaysDocument(string Type, Guid Id, string EmployeeName,
+        DateTimeOffset StartDate, DateTimeOffset EndDate,
+        string? ApprovedBy, DateTimeOffset? ApprovedDate,
+        string? RejectedBy, DateTimeOffset? RejectedDate, string RejectedReason,
+        string? CancelledBy, DateTimeOffset? cancelledDate);
+
+    public async Task<Guid> Upsert(HolidayConclusionBase conclusion)
     {
         var data = JsonSerializer.Serialize(conclusion);
         await oracle.Insert(conclusion.Id.ToString(), new(conclusion.GetType().Name, data));
+        return conclusion.Id;
     }
 
     public async Task<IApprovableHolidays> GetForApproval(Guid id)
@@ -17,10 +24,10 @@ public class ConclusionsRepository(Oracle oracle) : IConclusionsRepository
         return (IApprovableHolidays)rawData;
     }
 
-    public async Task<HolidayConclusionBase> GetForCancellation(Guid id)
+    public async Task<ICancellableHolidays> GetForCancellation(Guid id)
     {
         var rawData = await ReadFromDb(id, typeof(NewHolidayConclusion).Name, typeof(ApprovedHolidayConclusion).Name);
-        return (HolidayConclusionBase)rawData;
+        return (ICancellableHolidays)rawData;
     }
 
     public async Task<NewHolidayConclusion> GetForRejection(Guid id)

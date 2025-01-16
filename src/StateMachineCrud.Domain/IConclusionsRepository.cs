@@ -4,6 +4,6 @@ public interface IConclusionsRepository
 {
     Task<IApprovableHolidays> GetForApproval(Guid id);
     Task<NewHolidayConclusion> GetForRejection(Guid id);
-    Task<HolidayConclusionBase> GetForCancellation(Guid id);
-    Task Upsert(HolidayConclusionBase conclusion);
+    Task<ICancellableHolidays> GetForCancellation(Guid id);
+    Task<Guid> Upsert(HolidayConclusionBase conclusion);
 }
