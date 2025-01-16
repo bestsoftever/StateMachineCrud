@@ -3,18 +3,41 @@ using StateMachineCrud.Domain;
 
 namespace StateMachineCrud.Infrastructure;
 
-public class ConclusionsRepository
+public class ConclusionsRepository(Oracle oracle) : IConclusionsRepository
 {
-    private Oracle oracle = new();
-
-    public async Task<NewHolidayConclusion> GetNewAsync(Guid id)
+    public async Task Upsert(HolidayConclusionBase conclusion)
     {
-        var row = await oracle.Select(id.ToString());
-        return JsonSerializer.Deserialize<NewHolidayConclusion>(row.Data);
+        var data = JsonSerializer.Serialize(conclusion);
+        await oracle.Insert(conclusion.Id.ToString(), new(conclusion.GetType().Name, data));
     }
 
-    public async Task<bool> Upsert(HolidayConclusionBase conclusion)
+    public async Task<IApprovableHolidays> GetForApproval(Guid id)
     {
-        await oracle.Insert(conclusion.Id)
+        var rawData = await ReadFromDb(id, typeof(NewHolidayConclusion).Name, typeof(RejectedHolidayConclusion).Name);
+        return (IApprovableHolidays)rawData;
+    }
+
+    public async Task<HolidayConclusionBase> GetForCancellation(Guid id)
+    {
+        var rawData = await ReadFromDb(id, typeof(NewHolidayConclusion).Name, typeof(ApprovedHolidayConclusion).Name);
+        return (HolidayConclusionBase)rawData;
+    }
+
+    public async Task<NewHolidayConclusion> GetForRejection(Guid id)
+    {
+        var rawData = await ReadFromDb(id, typeof(NewHolidayConclusion).Name);
+        return (NewHolidayConclusion)rawData;
+    }
+
+    private async Task<object> ReadFromDb(Guid id, params string[] validTypes)
+    {
+        var row = await oracle.Select(id.ToString());
+        if (!validTypes.Contains(row.Type))
+        {
+            throw new InvalidOperationException("Not found!");
+        }
+
+        var type = Type.GetType(row.Type, true, true);
+        return JsonSerializer.Deserialize(row.Data, type);
     }
 }

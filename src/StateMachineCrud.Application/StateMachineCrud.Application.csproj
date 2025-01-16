@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\StateMachineCrud.Domain\StateMachineCrud.Domain.csproj" />
-    <ProjectReference Include="..\StateMachineCrud.Infrastructure\StateMachineCrud.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

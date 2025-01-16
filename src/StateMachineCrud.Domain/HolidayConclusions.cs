@@ -1,15 +1,34 @@
 ﻿namespace StateMachineCrud.Domain;
 
-public abstract class HolidayConclusionBase { };
-
-public class NewHolidayConclusion(string employeeName, DateTimeOffset startData, DateTimeOffset endData) : HolidayConclusionBase
+public abstract class HolidayConclusionBase
 {
-    public Guid Id { get; init; } = Guid.NewGuid();
-    public string EmployeeName { get; init; } = employeeName;
-    public DateTimeOffset StartDate { get; init; } = startData;
-    public DateTimeOffset EndDate { get; init; } = endData;
+    public Guid Id { get; protected set; }
 
+    public static explicit operator HolidayConclusionBase(object v)
+    {
+        throw new NotImplementedException();
+    }
+};
+
+public interface IApprovableHolidays
+{
     public ApprovedHolidayConclusion Approve(string approvedBy, DateTimeOffset approvedDate) => new(approvedBy, approvedDate);
+};
+
+public class NewHolidayConclusion : HolidayConclusionBase, IApprovableHolidays
+{
+    public string EmployeeName { get; init; }
+    public DateTimeOffset StartDate { get; init; }
+    public DateTimeOffset EndDate { get; init; }
+
+    public NewHolidayConclusion(string employeeName, DateTimeOffset startData, DateTimeOffset endData)
+    {
+        EmployeeName = employeeName;
+        StartDate = startData;
+        EndDate = endData;
+        Id = Guid.NewGuid();
+    }
+    
     public RejectedHolidayConclusion Reject(string rejectedBy, DateTimeOffset rejectedDate, string rejectedReason) => new(rejectedBy, rejectedDate, rejectedReason);
 }
 
@@ -21,7 +40,7 @@ public class ApprovedHolidayConclusion(string approvedBy, DateTimeOffset approve
     public CancelledHolidayConclusion Cancel(string cancelledBy, DateTimeOffset cancelledDate) => new(cancelledBy, cancelledDate);
 }
 
-public class RejectedHolidayConclusion(string rejectedBy, DateTimeOffset rejectedDate, string rejectionReason) : HolidayConclusionBase
+public class RejectedHolidayConclusion(string rejectedBy, DateTimeOffset rejectedDate, string rejectionReason) : HolidayConclusionBase, IApprovableHolidays
 {
     public string RejectedBy { get; init; } = rejectedBy;
     public DateTimeOffset RejectedDate { get; init; } = rejectedDate;

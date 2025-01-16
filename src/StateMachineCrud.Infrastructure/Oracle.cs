@@ -2,17 +2,15 @@
 
 public class Oracle
 {
-    public record Record(string Type, string Data);
+    private Dictionary<string, (string Type, string Data)> _mysql = [];
 
-    private Dictionary<string, Record> _mysql = [];
-
-    public async Task<Record> Select(string id)
+    public async Task<(string Type, string Data)> Select(string id)
     {
         await Task.Yield();
         return _mysql[id];
     }
 
-    public async Task Insert(string id, Record record)
+    public async Task Insert(string id, (string Type, string Data) record)
     {
         await Task.Yield();
         _mysql.Add(id, record);
