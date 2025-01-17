@@ -17,6 +17,12 @@ public class Oracle
         _mysql.Add(id, record);
     }
 
+    public async Task Update(string id, (string Type, string Data) record)
+    {
+        await Task.Yield();
+        _mysql[id] = record;
+    }
+
     public async Task<IEnumerable<(string Type, string Data)>> GetAll()
     {
         await Task.Yield();

@@ -1,4 +1,6 @@
-﻿namespace StateMachineCrud.Domain;
+﻿using StateMachineCrud.Domain.Entities;
+
+namespace StateMachineCrud.Domain.Repositories;
 
 public interface IConclusionsRepository
 {

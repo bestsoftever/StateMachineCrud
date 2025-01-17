@@ -1,7 +1,8 @@
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
-using StateMachineCrud.Domain;
+using StateMachineCrud.Domain.Repositories;
+using StateMachineCrud.Domain.ViewModels;
 using StateMachineCrud.Infrastructure;
 
 namespace StateMachineCrud.Application.Tests;
@@ -18,7 +19,7 @@ public class AlmostIntegrationTest1
         await mediator.Send(new ApproveHolidaysRequest(id));
         await mediator.Send(new CancelHolidaysRequest(id));
 
-        var view = await mediator.Send(new GetAllHolidays());
+        var view = await mediator.Send(new GetAllHolidaysRequest());
 
         view.ShouldHaveSingleItem();
     }
@@ -28,6 +29,7 @@ public class AlmostIntegrationTest1
         var services = new ServiceCollection();
         services.AddSingleton<Oracle>();
         services.AddTransient<IConclusionsRepository, ConclusionsRepository>();
+        services.AddTransient<IHolidaysViewModelReader, HolidayConclusionViewModelReader>();
         var serviceProvider = services
             .AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(CreateHolidaysUseCase).Assembly))
             .BuildServiceProvider();

@@ -1,21 +1,72 @@
 ﻿using System.Text.Json;
-using StateMachineCrud.Domain;
+using StateMachineCrud.Domain.Entities;
+using StateMachineCrud.Domain.Repositories;
+using StateMachineCrud.Domain.ViewModels;
 
 namespace StateMachineCrud.Infrastructure;
 
+internal enum HolidayConclusionDocumentType { New, Approved, Rejected, Cancelled }
+
+internal record HolidayConclusionDocument(HolidayConclusionDocumentType Type, Guid Id, string EmployeeName,
+    DateTimeOffset StartDate, DateTimeOffset EndDate,
+    string? ApprovedBy = null, DateTimeOffset? ApprovedDate = null,
+    string? RejectedBy = null, DateTimeOffset? RejectedDate = null, string RejectedReason = null,
+    string? CancelledBy = null, DateTimeOffset? cancelledDate = null);
+
+public class HolidayConclusionViewModelReader(Oracle oracle) : IHolidaysViewModelReader
+{
+    public async Task<IEnumerable<HolidaysViewModel>> GetAll()
+    {
+        var rows = await oracle.GetAll();
+        return rows
+            .Select(row => JsonSerializer.Deserialize<HolidayConclusionDocument>(row.Data))
+            .Select(data => new HolidaysViewModel(data.Type.ToString(),
+                data.Id, data.EmployeeName, data.StartDate, data.EndDate, data.ApprovedBy, data.ApprovedDate, 
+                data.RejectedBy, data.RejectedDate, data.RejectedReason, data.CancelledBy, data.cancelledDate)
+            );
+    }
+}
+
 public class ConclusionsRepository(Oracle oracle) : IConclusionsRepository
 {
-    record HolidaysDocument(string Type, Guid Id, string EmployeeName,
-        DateTimeOffset StartDate, DateTimeOffset EndDate,
-        string? ApprovedBy, DateTimeOffset? ApprovedDate,
-        string? RejectedBy, DateTimeOffset? RejectedDate, string RejectedReason,
-        string? CancelledBy, DateTimeOffset? cancelledDate);
-
     public async Task<Guid> Upsert(HolidayConclusionBase conclusion)
     {
-        var data = JsonSerializer.Serialize(conclusion);
-        await oracle.Insert(conclusion.Id.ToString(), new(conclusion.GetType().Name, data));
+        static HolidayConclusionDocument UpdateDocument(HolidayConclusionBase c, HolidayConclusionDocument d)
+        {
+            switch (c)
+            {
+                case ApprovedHolidayConclusion ah:
+                    return d with { ApprovedBy = ah.ApprovedBy, ApprovedDate = ah.ApprovedDate };
+                case RejectedHolidayConclusion rh:
+                    return d with { RejectedBy = rh.RejectedBy, RejectedDate = rh.RejectedDate, RejectedReason = rh.RejectionReason };
+                case CancelledHolidayConclusion ch:
+                    return d with { CancelledBy = ch.CancelledBy, cancelledDate = ch.CancelledDate };
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
+
+        if (conclusion is NewHolidayConclusion nh)
+        {
+            var document = new HolidayConclusionDocument(HolidayConclusionDocumentType.New, nh.Id, nh.EmployeeName, nh.StartDate, nh.EndDate);
+            var data = JsonSerializer.Serialize(document);
+            await oracle.Insert(nh.Id.ToString(), (nameof(NewHolidayConclusion), data));
+        }
+        else
+        {
+            var document = await ReadFromOracle(conclusion.Id);
+            var updated = UpdateDocument(conclusion, document);
+            var data = JsonSerializer.Serialize(updated);
+            await oracle.Update(conclusion.Id.ToString(), (conclusion.GetType().Name, data));
+        }
+
         return conclusion.Id;
+    }
+
+    private async Task<HolidayConclusionDocument> ReadFromOracle(Guid id)
+    {
+        var row = await oracle.Select(id.ToString());
+        return JsonSerializer.Deserialize<HolidayConclusionDocument>(row.Data);
     }
 
     public async Task<IApprovableHolidays> GetForApproval(Guid id)

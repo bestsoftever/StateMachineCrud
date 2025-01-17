@@ -1,4 +1,4 @@
-﻿namespace StateMachineCrud.Domain;
+﻿namespace StateMachineCrud.Domain.Entities;
 
 public abstract class HolidayConclusionBase
 {
@@ -15,7 +15,7 @@ public interface ICancellableHolidays
     public ApprovedHolidayConclusion Cancel(string cancelledBy, DateTimeOffset cancelledDate) => new(cancelledBy, cancelledDate);
 };
 
-public class NewHolidayConclusion 
+public class NewHolidayConclusion
     : HolidayConclusionBase, IApprovableHolidays, ICancellableHolidays
 {
     public string EmployeeName { get; init; }
@@ -29,11 +29,11 @@ public class NewHolidayConclusion
         EndDate = endData;
         Id = Guid.NewGuid();
     }
-    
+
     public RejectedHolidayConclusion Reject(string rejectedBy, DateTimeOffset rejectedDate, string rejectedReason) => new(rejectedBy, rejectedDate, rejectedReason);
 }
 
-public class ApprovedHolidayConclusion(string approvedBy, DateTimeOffset approvedDate) 
+public class ApprovedHolidayConclusion(string approvedBy, DateTimeOffset approvedDate)
     : HolidayConclusionBase, ICancellableHolidays
 {
     public string ApprovedBy { get; init; } = approvedBy;
@@ -42,7 +42,7 @@ public class ApprovedHolidayConclusion(string approvedBy, DateTimeOffset approve
     public CancelledHolidayConclusion Cancel(string cancelledBy, DateTimeOffset cancelledDate) => new(cancelledBy, cancelledDate);
 }
 
-public class RejectedHolidayConclusion(string rejectedBy, DateTimeOffset rejectedDate, string rejectionReason) 
+public class RejectedHolidayConclusion(string rejectedBy, DateTimeOffset rejectedDate, string rejectionReason)
     : HolidayConclusionBase, IApprovableHolidays
 {
     public string RejectedBy { get; init; } = rejectedBy;
@@ -50,7 +50,7 @@ public class RejectedHolidayConclusion(string rejectedBy, DateTimeOffset rejecte
     public string RejectionReason { get; } = rejectionReason;
 }
 
-public class CancelledHolidayConclusion(string cancelledBy, DateTimeOffset cancelledDate) 
+public class CancelledHolidayConclusion(string cancelledBy, DateTimeOffset cancelledDate)
     : HolidayConclusionBase
 {
     public string CancelledBy { get; } = cancelledBy;

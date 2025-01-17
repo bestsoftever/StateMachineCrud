@@ -1,6 +1,7 @@
 ﻿using MediatR;
-using StateMachineCrud.Domain;
-using StateMachineCrud.Infrastructure;
+using StateMachineCrud.Domain.Entities;
+using StateMachineCrud.Domain.Repositories;
+using StateMachineCrud.Domain.ViewModels;
 
 namespace StateMachineCrud.Application;
 
@@ -10,11 +11,11 @@ public record CreateHolidaysRequest(string EmployeeName, DateTimeOffset StartDat
 public class CreateHolidaysUseCase(IConclusionsRepository conclusionsRepository)
     : IRequestHandler<CreateHolidaysRequest, Guid>
 {
-    public async Task<CreateHolidaysRequest> Handle(CreateHolidaysRequest request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(CreateHolidaysRequest request, CancellationToken cancellationToken)
     {
         var holidayConclusion = new NewHolidayConclusion(request.EmployeeName, request.StartDate, request.EndDate);
-        await conclusionsRepository.Upsert(holidayConclusion);
-        return request;
+        var id = await conclusionsRepository.Upsert(holidayConclusion);
+        return id;
     }
 }
 
@@ -61,30 +62,13 @@ public class CancelHolidayUseCase(IConclusionsRepository conclusionsRepository)
     }
 }
 
-public record HolidaysViewModel(string Type, Guid Id, string EmployeeName,
-    DateTimeOffset StartDate, DateTimeOffset EndDate,
-    string? ApprovedBy, DateTimeOffset? ApprovedDate,
-    string? RejectedBy, DateTimeOffset? RejectedDate, string RejectedReason,
-    string? CancelledBy, DateTimeOffset? cancelledDate);
-
 public record GetAllHolidaysRequest : IRequest<IEnumerable<HolidaysViewModel>>;
 
-public class GetAllHolidaysUseCase(Oracle oracle)
+public class GetAllHolidaysUseCase(IHolidaysViewModelReader vmReader)
     : IRequestHandler<GetAllHolidaysRequest, IEnumerable<HolidaysViewModel>>
 {
     public async Task<IEnumerable<HolidaysViewModel>> Handle(GetAllHolidaysRequest request, CancellationToken cancellationToken)
     {
-        var allRows = await oracle.GetAll();
-
-        return allRows.Select(x => new HolidaysViewModel(
-                x.Type, x.Data.
-            
-            )    
-        );
-    }
-
-    private HolidaysViewModel MapItem((string Type, string Data) row)
-    {
-
+        return await vmReader.GetAll();
     }
 }
