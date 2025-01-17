@@ -18,7 +18,6 @@ public class AlmostIntegrationTest1
         await mediator.Send(new RejectHolidaysRequest(id, "Urlop jest dla dyrekcji!"));
         await mediator.Send(new ApproveHolidaysRequest(id));
         await mediator.Send(new CancelHolidaysRequest(id));
-
         var view = await mediator.Send(new GetAllHolidaysRequest());
 
         view.ShouldHaveSingleItem();

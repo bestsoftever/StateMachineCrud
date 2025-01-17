@@ -7,12 +7,12 @@ public abstract class HolidayConclusionBase
 
 public interface IApprovableHolidays
 {
-    public ApprovedHolidayConclusion Approve(string approvedBy, DateTimeOffset approvedDate) => new(approvedBy, approvedDate);
+    ApprovedHolidayConclusion Approve(string approvedBy, DateTimeOffset approvedDate);
 };
 
 public interface ICancellableHolidays
 {
-    public ApprovedHolidayConclusion Cancel(string cancelledBy, DateTimeOffset cancelledDate) => new(cancelledBy, cancelledDate);
+    CancelledHolidayConclusion Cancel(string cancelledBy, DateTimeOffset cancelledDate);
 };
 
 public class NewHolidayConclusion
@@ -22,37 +22,63 @@ public class NewHolidayConclusion
     public DateTimeOffset StartDate { get; init; }
     public DateTimeOffset EndDate { get; init; }
 
-    public NewHolidayConclusion(string employeeName, DateTimeOffset startData, DateTimeOffset endData)
+    public NewHolidayConclusion(Guid id, string employeeName, DateTimeOffset startData, DateTimeOffset endData)
     {
+        Id = id;
         EmployeeName = employeeName;
         StartDate = startData;
         EndDate = endData;
-        Id = Guid.NewGuid();
     }
 
-    public RejectedHolidayConclusion Reject(string rejectedBy, DateTimeOffset rejectedDate, string rejectedReason) => new(rejectedBy, rejectedDate, rejectedReason);
+    public RejectedHolidayConclusion Reject(string rejectedBy, DateTimeOffset rejectedDate, string rejectedReason) =>
+        new(Id, rejectedBy, rejectedDate, rejectedReason);
+
+    public ApprovedHolidayConclusion Approve(string approvedBy, DateTimeOffset approvedDate) => new(Id, approvedBy, approvedDate);
+
+    public CancelledHolidayConclusion Cancel(string cancelledBy, DateTimeOffset cancelledDate) => new(Id, cancelledBy, cancelledDate);
 }
 
-public class ApprovedHolidayConclusion(string approvedBy, DateTimeOffset approvedDate)
-    : HolidayConclusionBase, ICancellableHolidays
+public class ApprovedHolidayConclusion : HolidayConclusionBase, ICancellableHolidays
 {
-    public string ApprovedBy { get; init; } = approvedBy;
-    public DateTimeOffset ApprovedDate { get; init; } = approvedDate;
+    public string ApprovedBy { get; init; }
+    public DateTimeOffset ApprovedDate { get; init; }
 
-    public CancelledHolidayConclusion Cancel(string cancelledBy, DateTimeOffset cancelledDate) => new(cancelledBy, cancelledDate);
+    public ApprovedHolidayConclusion(Guid id, string approvedBy, DateTimeOffset approvedDate)
+    {
+        Id = id;
+        ApprovedBy = approvedBy;
+        ApprovedDate = approvedDate;
+    }
+
+    public CancelledHolidayConclusion Cancel(string cancelledBy, DateTimeOffset cancelledDate) => new(Id, cancelledBy, cancelledDate);
 }
 
-public class RejectedHolidayConclusion(string rejectedBy, DateTimeOffset rejectedDate, string rejectionReason)
-    : HolidayConclusionBase, IApprovableHolidays
+public class RejectedHolidayConclusion : HolidayConclusionBase, IApprovableHolidays
 {
-    public string RejectedBy { get; init; } = rejectedBy;
-    public DateTimeOffset RejectedDate { get; init; } = rejectedDate;
-    public string RejectionReason { get; } = rejectionReason;
+    public string RejectedBy { get; init; }
+    public DateTimeOffset RejectedDate { get; init; }
+    public string RejectionReason { get; }
+
+    public RejectedHolidayConclusion(Guid id, string rejectedBy, DateTimeOffset rejectedDate, string rejectionReason)
+    {
+        Id = id;
+        RejectedBy = rejectedBy;
+        RejectedDate = rejectedDate;
+        RejectionReason = rejectionReason;
+    }
+
+    public ApprovedHolidayConclusion Approve(string approvedBy, DateTimeOffset approvedDate) => new(Id, approvedBy, approvedDate);
 }
 
-public class CancelledHolidayConclusion(string cancelledBy, DateTimeOffset cancelledDate)
-    : HolidayConclusionBase
+public class CancelledHolidayConclusion : HolidayConclusionBase
 {
-    public string CancelledBy { get; } = cancelledBy;
-    public DateTimeOffset CancelledDate { get; } = cancelledDate;
+    public CancelledHolidayConclusion(Guid id, string cancelledBy, DateTimeOffset cancelledDate)
+    {
+        Id = id;
+        CancelledBy = cancelledBy;
+        CancelledDate = cancelledDate;
+    }
+
+    public string CancelledBy { get; }
+    public DateTimeOffset CancelledDate { get; }
 }

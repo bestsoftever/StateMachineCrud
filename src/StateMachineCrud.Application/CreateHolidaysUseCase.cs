@@ -13,7 +13,7 @@ public class CreateHolidaysUseCase(IConclusionsRepository conclusionsRepository)
 {
     public async Task<Guid> Handle(CreateHolidaysRequest request, CancellationToken cancellationToken)
     {
-        var holidayConclusion = new NewHolidayConclusion(request.EmployeeName, request.StartDate, request.EndDate);
+        var holidayConclusion = new NewHolidayConclusion(Guid.NewGuid(), request.EmployeeName, request.StartDate, request.EndDate);
         var id = await conclusionsRepository.Upsert(holidayConclusion);
         return id;
     }
