@@ -55,28 +55,16 @@ public class ConclusionsRepository(Oracle oracle) : IConclusionsRepository
         return conclusion.Id;
     }
 
-    public async Task<IApprovableHolidays> GetForApproval(Guid id)
-    {
-        var entity = MapToEntity(await ReadDocument(id));
-        return (IApprovableHolidays)entity;
-    }
+    public async Task<IApprovableHolidays> GetForApproval(Guid id) => (IApprovableHolidays)MapToEntity(await ReadDocument(id));
 
-    public async Task<ICancellableHolidays> GetForCancellation(Guid id)
-    {
-        var entity = MapToEntity(await ReadDocument(id));
-        return (ICancellableHolidays)entity;
-    }
+    public async Task<ICancellableHolidays> GetForCancellation(Guid id) => (ICancellableHolidays)MapToEntity(await ReadDocument(id));
 
-    public async Task<NewHolidayConclusion> GetForRejection(Guid id)
-    {
-        var entity = MapToEntity(await ReadDocument(id));
-        return (NewHolidayConclusion)entity;
-    }
+    public async Task<NewHolidayConclusion> GetForRejection(Guid id) => (NewHolidayConclusion)MapToEntity(await ReadDocument(id));
 
-    private static HolidayConclusionBase MapToEntity((string Type, HolidayConclusionDocument Document) document)
+    private static HolidayConclusionBase MapToEntity((string Type, HolidayConclusionDocument Document) data)
     {
-        var d = document.Document!;
-        return document.Type switch
+        var d = data.Document!;
+        return data.Type switch
         {
             nameof(NewHolidayConclusion) => new NewHolidayConclusion(d.Id, d.EmployeeName, d.StartDate, d.EndDate),
             nameof(RejectedHolidayConclusion) => new RejectedHolidayConclusion(d.Id, d.RejectedBy, d.RejectedDate.Value, d.RejectedReason),
